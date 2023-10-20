@@ -5,7 +5,31 @@ resource "azurerm_vpn_gateway" "vpn_gateway" {
   location            = azurerm_virtual_hub.virtual_hub[each.value.virtual_hub].location
   resource_group_name = azurerm_virtual_hub.virtual_hub[each.value.virtual_hub].resource_group_name
   virtual_hub_id      = azurerm_virtual_hub.virtual_hub[each.value.virtual_hub].id
-  tags                = try(each.value.tags, {})
+
+  bgp_route_translation_for_nat_enabled = each.value.bgp_route_translation_for_nat_enabled
+  routing_preference                    = each.value.routing_preference
+  scale_unit                            = each.value.scale_unit
+  tags                                  = try(each.value.tags, {})
+
+  dynamic "bgp_settings" {
+    for_each = each.value.bgp_settings != null ? [each.value.bgp_settings] : []
+    content {
+      asn         = bgp_settings.value.asn
+      peer_weight = bgp_settings.value.peer_weight
+      dynamic "instance_0_bgp_peering_address" {
+        for_each = bgp_settings.value.instance_0_bgp_peering_address != null ? [bgp_settings.value.instance_0_bgp_peering_address] : []
+        content {
+          custom_ips = instance_0_bgp_peering_address.value
+        }
+      }
+      dynamic "instance_1_bgp_peering_address" {
+        for_each = bgp_settings.value.instance_1_bgp_peering_address != null ? [bgp_settings.value.instance_1_bgp_peering_address] : []
+        content {
+          custom_ips = instance_1_bgp_peering_address.value
+        }
+      }
+    }
+  }
 }
 
 # Create a vpn site. Sites represent the Physical locations (On-Premises) you wish to connect.
@@ -18,7 +42,7 @@ resource "azurerm_vpn_site" "vpn_site" {
   virtual_wan_id      = azurerm_virtual_wan.virtual_wan.id
   address_cidrs       = try(each.value.address_cidrs, null)
   dynamic "link" {
-    for_each = each.value.links != null && length(each.value.links) > 0 ? each.value.links : []
+    for_each = each.value.links != null ? each.value.links : {}
 
     content {
       name          = link.value.name
@@ -62,7 +86,7 @@ resource "azurerm_vpn_gateway_connection" "vpn_site_connection" {
 
     content {
       name                 = vpn_link.value.name
-      vpn_site_link_id     = azurerm_vpn_site.vpn_site[each.value.remote_vpn_site_name].link[vpn_link.value.vpn_site_link_number].id
+      vpn_site_link_id     = azurerm_vpn_site.vpn_site[each.value.remote_vpn_site_name].link[vpn_link.value.vpn_site_link_key].id
       bandwidth_mbps       = try(vpn_link.value.bandwidth_mbps, null)
       bgp_enabled          = try(vpn_link.value.bgp_enabled, null)
       connection_mode      = try(vpn_link.value.connection_mode, null)

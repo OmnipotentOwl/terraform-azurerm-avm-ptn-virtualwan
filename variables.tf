@@ -98,7 +98,7 @@ variable "vpn_sites" {
     name = string
     # Name of the virtual hub
     virtual_hub_name = string
-    links = list(object({
+    links = map(object({
       name = string
       bgp = optional(object({
         asn             = number
@@ -133,15 +133,15 @@ variable "vpn_site_connections" {
     vpn_gateway_name = string
     # Name of the vpn site
     remote_vpn_site_name = string
-    vpn_links = list(object({
+    vpn_links = map(object({
       name                 = string
       egress_nat_rule_ids  = optional(list(string))
       ingress_nat_rule_ids = optional(list(string))
-      # Index of the link on the vpn gateway
-      vpn_site_link_number = number
-      bandwidth_mbps       = optional(number)
-      bgp_enabled          = optional(bool)
-      connection_mode      = optional(string)
+      # Key name of the link on the vpn site links map
+      vpn_site_link_key = string
+      bandwidth_mbps    = optional(number)
+      bgp_enabled       = optional(bool)
+      connection_mode   = optional(string)
 
       ipsec_policy = optional(object({
         dh_group                 = string
@@ -311,18 +311,18 @@ variable "virtual_network_connections" {
     name                      = string
     virtual_hub_name          = string
     remote_virtual_network_id = string
-    internet_security_enabled = optional(bool)
+    internet_security_enabled = optional(bool, null)
     routing = optional(object({
       associated_route_table_id = string
       propagated_route_table = optional(object({
         route_table_ids = optional(list(string))
         labels          = optional(list(string))
       }))
-      static_vnet_route = optional(object({
+      static_vnet_route = optional(map(object({
         name                = optional(string)
         address_prefixes    = optional(list(string))
         next_hop_ip_address = optional(string)
-      }))
+      })), null)
     }))
   }))
   description = "Azure virtual network connections"
