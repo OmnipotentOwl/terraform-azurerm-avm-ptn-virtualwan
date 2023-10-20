@@ -17,8 +17,8 @@ resource "azurerm_virtual_wan" "virtual_wan" {
   type                              = var.type
   tags                              = merge(var.tags, var.virtual_wan_tags)
 
-  depends_on = [ 
-    azurerm_resource_group.rg 
+  depends_on = [
+    azurerm_resource_group.rg
   ]
 }
 
