@@ -98,7 +98,7 @@ variable "vpn_sites" {
     name = string
     # Name of the virtual hub
     virtual_hub_name = string
-    links = map(object({
+    links = list(object({
       name = string
       bgp = optional(object({
         asn             = number
@@ -137,11 +137,11 @@ variable "vpn_site_connections" {
       name                 = string
       egress_nat_rule_ids  = optional(list(string))
       ingress_nat_rule_ids = optional(list(string))
-      # Key name of the link on the vpn site links map
-      vpn_site_link_key = string
-      bandwidth_mbps    = optional(number)
-      bgp_enabled       = optional(bool)
-      connection_mode   = optional(string)
+      # Index of the link on the vpn site
+      vpn_site_link_number = number
+      bandwidth_mbps       = optional(number)
+      bgp_enabled          = optional(bool)
+      connection_mode      = optional(string)
 
       ipsec_policy = optional(object({
         dh_group                 = string
@@ -277,7 +277,7 @@ variable "firewalls" {
     dns_servers          = optional(list(string))
     firewall_policy_id   = optional(string)
     private_ip_ranges    = optional(list(string))
-    threat_intel_mode    = optional(string, "Alert")
+    threat_intel_mode    = optional(string)
     zones                = optional(list(string))
     vhub_public_ip_count = optional(string)
     tags                 = optional(map(string))
@@ -317,13 +317,13 @@ variable "virtual_network_connections" {
       propagated_route_table = optional(object({
         route_table_ids = optional(list(string))
         labels          = optional(list(string))
-      }))
+      }), null)
       static_vnet_route = optional(map(object({
         name                = optional(string)
         address_prefixes    = optional(list(string))
         next_hop_ip_address = optional(string)
       })), null)
-    }))
+    }), null)
   }))
   description = "Azure virtual network connections"
   default     = {}

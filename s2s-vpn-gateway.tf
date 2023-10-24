@@ -40,9 +40,9 @@ resource "azurerm_vpn_site" "vpn_site" {
   location            = azurerm_virtual_hub.virtual_hub[each.value.virtual_hub_name].location
   resource_group_name = azurerm_virtual_hub.virtual_hub[each.value.virtual_hub_name].resource_group_name
   virtual_wan_id      = azurerm_virtual_wan.virtual_wan.id
-  address_cidrs       = try(each.value.address_cidrs, null)
+  address_cidrs       = each.value.address_cidrs
   dynamic "link" {
-    for_each = each.value.links != null ? each.value.links : {}
+    for_each = each.value.links != null ? each.value.links : []
 
     content {
       name          = link.value.name
@@ -61,13 +61,20 @@ resource "azurerm_vpn_site" "vpn_site" {
       provider_name = try(link.value.provider_name, null)
     }
   }
-  device_model  = try(each.value.device_model, null)
-  device_vendor = try(each.value.device_vendor, null)
-  o365_policy {
-    traffic_category {
-      allow_endpoint_enabled    = try(each.value.o365_policy.traffic_category.allow_endpoint_enabled, null)
-      default_endpoint_enabled  = try(each.value.o365_policy.traffic_category.default_endpoint_enabled, null)
-      optimize_endpoint_enabled = try(each.value.o365_policy.traffic_category.optimize_endpoint_enabled, null)
+  device_model  = each.value.device_model
+  device_vendor = each.value.device_vendor
+
+  dynamic "o365_policy" {
+    for_each = each.value.o365_policy != null ? [each.value.o365_policy] : []
+    content {
+      dynamic "traffic_category" {
+        for_each = o365_policy.value.traffic_category != null ? [o365_policy.value.traffic_category] : []
+        content {
+          allow_endpoint_enabled    = traffic_category.value.allow_endpoint_enabled
+          default_endpoint_enabled  = traffic_category.value.default_endpoint_enabled
+          optimize_endpoint_enabled = traffic_category.value.optimize_endpoint_enabled
+        }
+      }
     }
   }
   tags = try(each.value.tags, {})
@@ -82,11 +89,11 @@ resource "azurerm_vpn_gateway_connection" "vpn_site_connection" {
   remote_vpn_site_id = azurerm_vpn_site.vpn_site[each.value.remote_vpn_site_name].id
 
   dynamic "vpn_link" {
-    for_each = each.value.vpn_links != null && length(each.value.vpn_links) > 0 ? each.value.vpn_links : []
+    for_each = each.value.vpn_links != null ? each.value.vpn_links : {}
 
     content {
       name                 = vpn_link.value.name
-      vpn_site_link_id     = azurerm_vpn_site.vpn_site[each.value.remote_vpn_site_name].link[vpn_link.value.vpn_site_link_key].id
+      vpn_site_link_id     = azurerm_vpn_site.vpn_site[each.value.remote_vpn_site_name].link[vpn_link.value.vpn_site_link_number].id
       bandwidth_mbps       = try(vpn_link.value.bandwidth_mbps, null)
       bgp_enabled          = try(vpn_link.value.bgp_enabled, null)
       connection_mode      = try(vpn_link.value.connection_mode, null)
