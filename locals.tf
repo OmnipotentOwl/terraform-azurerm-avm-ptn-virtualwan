@@ -10,8 +10,13 @@ locals {
   }
   vpn_gateways = var.vpn_gateways != null ? {
     for key, gw in var.vpn_gateways : key => {
-      name        = gw.name
-      virtual_hub = gw.virtual_hub
+      name                                  = gw.name
+      virtual_hub                           = gw.virtual_hub
+      scale_unit                            = gw.scale_unit
+      routing_preference                    = gw.routing_preference
+      bgp_route_translation_for_nat_enabled = gw.bgp_route_translation_for_nat_enabled
+      bgp_settings                          = gw.bgp_settings
+      tags                                  = try(gw.tags, {})
     }
   } : null
   expressroute_gateways = var.expressroute_gateways != null ? {
@@ -44,16 +49,20 @@ locals {
       virtual_hub_name = site.virtual_hub_name
       address_cidrs    = site.address_cidrs
       links            = site.links
+      device_model     = site.device_model
+      device_vendor    = site.device_vendor
+      o365_policy      = site.o365_policy
     }
   } : null
   vpn_site_connections = var.vpn_site_connections != null ? {
     for key, conn in var.vpn_site_connections : key => {
-      name                    = conn.name
-      vpn_gateway_name        = conn.vpn_gateway_name
-      remote_vpn_site_name    = conn.remote_vpn_site_name
-      vpn_links               = conn.vpn_links
-      routing                 = conn.routing
-      traffic_selector_policy = conn.traffic_selector_policy
+      name                      = conn.name
+      vpn_gateway_name          = conn.vpn_gateway_name
+      remote_vpn_site_name      = conn.remote_vpn_site_name
+      vpn_links                 = conn.vpn_links
+      internet_security_enabled = conn.internet_security_enabled
+      routing                   = conn.routing
+      traffic_selector_policy   = conn.traffic_selector_policy
     }
   } : null
   er_circuit_connections = var.er_circuit_connections != null ? {
@@ -65,7 +74,7 @@ locals {
       enable_internet_security             = try(er_conn.enable_internet_security, null)
       express_route_gateway_bypass_enabled = try(er_conn.express_route_gateway_bypass_enabled, null)
       routing_weight                       = try(er_conn.routing_weight, null)
-      routing                              = try(er_conn.routing, {})
+      routing                              = try(er_conn.routing, null)
     }
   } : null
   virtual_network_connections = var.virtual_network_connections != null ? {
@@ -73,8 +82,8 @@ locals {
       name                      = vnet_conn.name
       virtual_hub_name          = vnet_conn.virtual_hub_name
       remote_virtual_network_id = vnet_conn.remote_virtual_network_id
-      internet_security_enabled = try(vnet_conn.internet_security_enabled, null)
-      routing                   = try(vnet_conn.routing, {})
+      internet_security_enabled = vnet_conn.internet_security_enabled
+      routing                   = vnet_conn.routing
     }
   } : null
   # routing_intents = var.routing_intents != null ? {
