@@ -13,6 +13,11 @@ variable "resource_group_tags" {
   description = "Virtual WAN Resource group tags"
   default     = {}
 }
+variable "create_resource_group" {
+  type        = bool
+  description = "Switch to flip for resource group creation inside the module. Default is true for backwards compatibility."
+  default     = true
+}
 
 # General tags for all resources
 variable "tags" {

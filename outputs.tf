@@ -1,5 +1,5 @@
 output "rg" {
-  value       = var.resource_group_name != null ? [for rg in azurerm_resource_group.rg : rg.name] : null
+  value       = var.create_resource_group ? azurerm_resource_group.rg[0].name : var.resource_group_name
   description = "Resource Group Name"
 }
 
