@@ -27,7 +27,7 @@ resource "azurerm_virtual_hub" "virtual_hub" {
 
   name                = each.value.name
   location            = each.value.location
-  resource_group_name = coalesce(each.value.resource_group_name, var.resource_group_name)
+  resource_group_name = coalesce(each.value.resource_group, var.resource_group_name)
   virtual_wan_id      = azurerm_virtual_wan.virtual_wan.id
   address_prefix      = each.value.address_prefix
   tags                = try(each.value.tags, {})
