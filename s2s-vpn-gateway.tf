@@ -92,8 +92,10 @@ resource "azurerm_vpn_gateway_connection" "vpn_site_connection" {
     for_each = each.value.vpn_links != null ? each.value.vpn_links : {}
 
     content {
-      name                 = vpn_link.value.name
-      vpn_site_link_id     = azurerm_vpn_site.vpn_site[each.value.remote_vpn_site_name].link[vpn_link.value.vpn_site_link_number].id
+      name = vpn_link.value.name
+      #Apply workaround for https://github.com/hashicorp/terraform-provider-azurerm/issues/18597
+      vpn_site_link_id = "${azurerm_vpn_site.vpn_site[each.value.remote_vpn_site_name].id}/vpnSiteLinks/${azurerm_vpn_site.vpn_site[each.value.remote_vpn_site_name].links[vpn_link.value.vpn_site_link_number].name}"
+      #azurerm_vpn_site.vpn_site[each.value.remote_vpn_site_name].link[vpn_link.value.vpn_site_link_number].id
       bandwidth_mbps       = try(vpn_link.value.bandwidth_mbps, null)
       bgp_enabled          = try(vpn_link.value.bgp_enabled, null)
       connection_mode      = try(vpn_link.value.connection_mode, null)
